@@ -1,0 +1,5 @@
+{
+  "name": "Process Engineering Monitor",
+  "description": "An application to monitor industrial processes, capture real-time data, and perform automated comparisons against baseline values for fault detection and root cause analysis.",
+  "requestFramePermissions": []
+}
