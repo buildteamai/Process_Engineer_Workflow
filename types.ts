@@ -126,3 +126,15 @@ export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
 }
+
+export interface ChangeRequest {
+  id: string;
+  title: string;
+  justification: string;
+  recommendedAction: string;
+  expectedResults: string;
+  riskLevel: 'Low' | 'Medium' | 'High';
+  riskDetails: string;
+  estimatedCost: string;
+  status: 'Draft' | 'Pending Approval' | 'Approved';
+}

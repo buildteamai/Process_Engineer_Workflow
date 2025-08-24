@@ -1,5 +1,3 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import type { ChatMessage } from '../types';
 
@@ -11,13 +9,17 @@ interface SmartAgentPanelProps {
 
 const SmartAgentPanel = ({ history, onSendMessage, isLoading }: SmartAgentPanelProps): React.ReactNode => {
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(scrollToBottom, [history]);
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+        scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+  }, [history, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ const SmartAgentPanel = ({ history, onSendMessage, isLoading }: SmartAgentPanelP
     <div className="bg-panel p-6 rounded-lg shadow-md flex flex-col h-[600px]">
       <h2 className="text-2xl font-bold text-text-primary mb-4 flex-shrink-0">Diagnostic Assistant</h2>
       
-      <div className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4">
+      <div ref={scrollContainerRef} className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4">
         {history.length === 0 && (
             <div className="text-center text-text-secondary h-full flex items-center justify-center">
                 <p>Ask a question about process data or trends to get started.</p>
@@ -55,11 +57,10 @@ const SmartAgentPanel = ({ history, onSendMessage, isLoading }: SmartAgentPanelP
                 </div>
             </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex-shrink-0">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex-shrink-0">
+        <div className="flex gap-2">
           <input
             type="text"
             value={input}
@@ -77,8 +78,8 @@ const SmartAgentPanel = ({ history, onSendMessage, isLoading }: SmartAgentPanelP
           >
             Send
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

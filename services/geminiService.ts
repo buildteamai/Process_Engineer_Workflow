@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Chat } from "@google/genai";
-import type { ProcessData, AIAnalysis } from '../types';
+import type { ProcessData, AIAnalysis, ChangeRequest } from '../types';
 
 const API_KEY = process.env.API_KEY;
 
@@ -577,6 +577,67 @@ export const analyzeProcessData = async (baselineData: ProcessData, historicalDa
              throw new Error("AI returned an invalid data format. Please try again.");
         }
         throw new Error("An error occurred during AI analysis.");
+    }
+};
+
+const changeRequestSchema = {
+    type: Type.OBJECT,
+    properties: {
+        title: { type: Type.STRING, description: "A concise and descriptive title for the change request." },
+        justification: { type: Type.STRING, description: "A detailed explanation of why this change is necessary, citing specific data points, faults, or trends from the analysis." },
+        recommendedAction: { type: Type.STRING, description: "A step-by-step description of the action to be taken. This should be clear and unambiguous." },
+        expectedResults: { type: Type.STRING, description: "The specific, measurable outcomes expected after implementing the change (e.g., 'Reduce temperature fluctuation in Zone 2 to +/- 2°F')." },
+        riskLevel: { type: Type.STRING, enum: ['Low', 'Medium', 'High'], description: "An assessment of the potential risks associated with this change." },
+        riskDetails: { type: Type.STRING, description: "A brief explanation of the risks and a plan to mitigate them. If risk is Low, explain why." },
+        estimatedCost: { type: Type.STRING, description: "A rough, non-binding cost estimate for parts, labor, and downtime. (e.g., '$500 - $1,000 for new sensor and labor', 'Minimal cost, involves recalibration during scheduled downtime')." },
+    },
+    required: ['title', 'justification', 'recommendedAction', 'expectedResults', 'riskLevel', 'riskDetails', 'estimatedCost']
+};
+
+
+export const suggestChangeRequest = async (analysis: AIAnalysis, baselineData: ProcessData, historicalData: ProcessData[]): Promise<Omit<ChangeRequest, 'id' | 'status'>> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `
+                Based on the provided process analysis, which includes faults, trends, and root cause recommendations, generate a comprehensive and actionable Change Request. The goal is to address the most critical issue identified in the analysis. The change request should be detailed and professional.
+
+                **Analysis:**
+                ${JSON.stringify(analysis, null, 2)}
+
+                **Baseline Data:**
+                ${JSON.stringify(baselineData, null, 2)}
+
+                **Historical Data:**
+                ${JSON.stringify(historicalData, null, 2)}
+
+                **Your Task:**
+                1.  **Identify the most critical issue** from the analysis's root causes or faults.
+                2.  Formulate a clear **title** for the change request based on this issue.
+                3.  Write a compelling **justification** based on the analysis findings, explaining the negative impact of the current state.
+                4.  Use the **recommended action** from the analysis as a starting point, but elaborate on it to make it a clear, actionable instruction.
+                5.  Infer and describe the specific, measurable **expected results** and benefits of implementing the change.
+                6.  Assess the **risk level** ('Low', 'Medium', 'High') and provide concise **risk details** and a mitigation plan.
+                7.  Provide a rough, non-binding **estimated cost**.
+
+                **Respond ONLY with the JSON object** adhering to the provided schema. Do not include 'id' or 'status' fields. Do not include any other text or markdown formatting.
+            `,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: changeRequestSchema,
+            },
+        });
+
+        const jsonText = response.text.trim();
+        const result = JSON.parse(jsonText);
+        return result as Omit<ChangeRequest, 'id' | 'status'>;
+
+    } catch (error) {
+        console.error("Error calling Gemini API for change request suggestion:", error);
+        if (error instanceof Error && error.message.includes('JSON')) {
+             throw new Error("AI returned an invalid data format for the change request. Please try again.");
+        }
+        throw new Error("An error occurred during AI change request suggestion.");
     }
 };
 

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useRef } from 'react';
 import type { AIAnalysis, ProcessData } from '../types';
 
@@ -9,6 +10,7 @@ interface AnalysisPanelProps {
   isLoading: boolean;
   error: string | null;
   currentData: ProcessData | null;
+  onCreateChangeRequest: (rca: AIAnalysis['rootCauseAnalysis'][0]) => void;
 }
 
 const StatusBadge = ({ status }: { status: 'In-Compliance' | 'Warning' | 'Critical' }): React.ReactNode => {
@@ -25,7 +27,7 @@ const StatusBadge = ({ status }: { status: 'In-Compliance' | 'Warning' | 'Critic
     );
 }
 
-const AnalysisPanel = ({ analysis, isLoading, error, currentData }: AnalysisPanelProps): React.ReactNode => {
+const AnalysisPanel = ({ analysis, isLoading, error, currentData, onCreateChangeRequest }: AnalysisPanelProps): React.ReactNode => {
   const reportContentRef = useRef<HTMLDivElement>(null);
   
   const handleDownloadDoc = () => {
@@ -282,10 +284,16 @@ const AnalysisPanel = ({ analysis, isLoading, error, currentData }: AnalysisPane
             <h3 className="text-lg font-semibold text-heading border-b border-border pb-2 mb-3">Root Cause Analysis & Recommendations</h3>
             <div className="space-y-4">
                  {analysis.rootCauseAnalysis.map((rca, index) => (
-                    <div key={index} className="bg-slate-50 p-4 rounded-md">
+                    <div key={index} className="bg-slate-50 p-4 rounded-md border border-slate-200">
                         <h4 className="font-semibold text-interactive">{rca.cause}</h4>
                         <p className="text-sm mt-1"><span className="font-semibold text-text-secondary">Reasoning:</span> {rca.reasoning}</p>
                         <p className="text-sm mt-1"><span className="font-semibold text-text-secondary">Recommendation:</span> {rca.recommendation}</p>
+                        <button
+                          onClick={() => onCreateChangeRequest(rca)}
+                          className="text-sm mt-3 bg-interactive/90 text-white font-semibold py-1 px-3 rounded-md hover:bg-interactive transition-colors"
+                        >
+                          + Create Change Request
+                        </button>
                     </div>
                  ))}
             </div>

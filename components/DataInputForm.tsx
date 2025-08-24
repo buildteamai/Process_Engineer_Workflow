@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { ProcessData, ZoneData, Zone, AirSystemData, CustomerInfo, SubSystem, DuctworkData } from '../types';
+import type { ProcessData, ZoneData, Zone, AirSystemData, CustomerInfo, SubSystem, DuctworkData, FanMotorData } from '../types';
 import { NEW_ZONE_TEMPLATE, BLANK_PROCESS_DATA } from '../constants';
 import ParameterInput from './ParameterInput';
 import ConfirmationModal from './ConfirmationModal';
@@ -426,14 +426,83 @@ const DataInputForm = ({ baselineData, setBaselineData, historicalData, setHisto
   };
 
   const handleAddNewReading = () => {
-    const lastReading = historicalData.length > 0 ? historicalData[historicalData.length - 1] : BLANK_PROCESS_DATA;
-    const newReading = JSON.parse(JSON.stringify(lastReading));
+    // Start with a deep copy of the baseline data to preserve its structure
+    // (zones, subsystems, customer info, structural dimensions).
+    const newReading: ProcessData = JSON.parse(JSON.stringify(baselineData));
+
+    // Clear general, reading-specific data to make fields blank for new input.
+    newReading.productSize = '';
+    newReading.conveyorSpeed.value = '';
+    if (newReading.outsideTemperature) newReading.outsideTemperature.value = '';
+    if (newReading.outsideRelativeHumidity) newReading.outsideRelativeHumidity.value = '';
+
+    // Clear zone and sub-system data that is part of a reading,
+    // preserving structural data like dimensions.
+    newReading.zones.forEach((zone: Zone) => {
+        const data = zone.data;
+        data.temperature.value = '';
+        data.relativeHumidity.value = '';
+        if (data.notes) data.notes.value = '';
+
+        const clearDuctwork = (duct: DuctworkData) => {
+            duct.airflow.value = '';
+            if (duct.staticPressure) duct.staticPressure.value = '';
+            duct.velocity.value = '';
+            // ductLength and ductWidth are structural and are not cleared.
+        };
+      
+        clearDuctwork(data.supply);
+        clearDuctwork(data.exhaust);
+
+        if (data.infiltration) {
+            data.infiltration.volume.value = '';
+            // silhouetteSize is structural.
+        }
+        if (data.exfiltration) {
+            data.exfiltration.volume.value = '';
+            // silhouetteSize is structural.
+        }
+
+        zone.subSystems.forEach((subSystem: SubSystem) => {
+            const clearFanMotor = (fan?: FanMotorData) => {
+                if (!fan) return;
+                if (fan.hz) fan.hz.value = '';
+                if (fan.hp) fan.hp.value = '';
+                if (fan.fla) fan.fla.value = '';
+                if (fan.rpm) fan.rpm.value = '';
+            };
+
+            if (subSystem.type === 'HeaterBox') {
+                subSystem.data.burnerRating.value = '';
+                clearFanMotor(subSystem.data.combustionFan);
+                clearFanMotor(subSystem.data.circulationFan);
+            } else if (subSystem.type === 'Cooler') {
+                subSystem.data.chilledWaterCoil.tempIn.value = '';
+                subSystem.data.chilledWaterCoil.pressureIn.value = '';
+                subSystem.data.chilledWaterCoil.tempOut.value = '';
+                subSystem.data.chilledWaterCoil.pressureOut.value = '';
+                clearFanMotor(subSystem.data.fanMotor);
+            } else if (subSystem.type === 'AirSupplyHouse') {
+                const airSystem = subSystem.data.airSystem;
+                airSystem.airflow.value = '';
+                if (airSystem.staticPressure) airSystem.staticPressure.value = '';
+                airSystem.velocity.value = '';
+                // ductLength and ductWidth are structural.
+                clearFanMotor(airSystem);
+            }
+        });
+    });
+    
+    // Set the date and time for the new reading to now.
     const now = new Date();
     newReading.collectionDate.value = now.toISOString().split('T')[0];
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    if (!newReading.timeOfDay) newReading.timeOfDay = { value: '' };
+    if (!newReading.timeOfDay) {
+        newReading.timeOfDay = { value: '' };
+    }
     newReading.timeOfDay.value = `${hours}:${minutes}`;
+
     setHistoricalData(prev => [...prev, newReading]);
     setActiveReadingIndex(historicalData.length);
   };

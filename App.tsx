@@ -1,7 +1,6 @@
 
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import type { ProcessData, AIAnalysis, ChatMessage, AirSystemData, SubSystem, Zone, FanMotorData, DuctworkData } from './types';
+import type { ProcessData, AIAnalysis, ChatMessage, AirSystemData, SubSystem, Zone, FanMotorData, DuctworkData, ChangeRequest } from './types';
 import type { Chat } from '@google/genai';
 import { BLANK_PROCESS_DATA } from './constants';
 import { analyzeProcessData, initializeChatSession, querySmartAgent } from './services/geminiService';
@@ -10,11 +9,63 @@ import SchematicDisplay from './components/SchematicDisplay';
 import DataInputForm from './components/DataInputForm';
 import AnalysisPanel from './components/AnalysisPanel';
 import SmartAgentPanel from './components/SmartAgentPanel';
+import ChangeManagementPanel from './components/ChangeManagementPanel';
 import TrendChartModal from './components/TrendChartModal';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+const LoginOverlay = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    passwordRef.current?.focus();
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === '123456') {
+      onLoginSuccess();
+    } else {
+      setError('Invalid password. Please try again.');
+      setPassword('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm">
+      <div className="bg-panel rounded-lg shadow-xl p-8 w-full max-w-sm m-4 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-interactive mx-auto mb-4"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path><path d="M12 4v2"></path><path d="M12 18v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M20 12h-2"></path><path d="M6 12H4"></path><path d="m4.93 19.07 1.41-1.41"></path><path d="m17.66 6.34 1.41-1.41"></path></svg>
+        <h1 className="text-2xl font-bold text-heading tracking-tight mb-2">
+          Process Engineering Monitor
+        </h1>
+        <p className="text-text-secondary mb-6">Please enter the password to access the application.</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            ref={passwordRef}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border-2 border-border rounded-md p-3 text-center text-lg tracking-widest focus:ring-interactive focus:border-interactive"
+            placeholder="******"
+            aria-label="Password"
+          />
+          {error && <p className="text-danger text-sm mt-2">{error}</p>}
+          <button
+            type="submit"
+            className="w-full mt-4 bg-interactive text-white font-bold py-3 px-4 rounded-lg hover:bg-interactive-hover transition duration-300"
+          >
+            Unlock
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export default function App(): React.ReactNode {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [baselineData, setBaselineData] = useState<ProcessData>(() => JSON.parse(JSON.stringify(BLANK_PROCESS_DATA)));
   const [historicalData, setHistoricalData] = useState<ProcessData[]>(() => [JSON.parse(JSON.stringify(BLANK_PROCESS_DATA))]);
   const [activeReadingIndex, setActiveReadingIndex] = useState<number>(0);
@@ -32,6 +83,8 @@ export default function App(): React.ReactNode {
   const [isTrendChartVisible, setIsTrendChartVisible] = useState<boolean>(false);
   const [justLoaded, setJustLoaded] = useState<boolean>(false);
   const [activeView, setActiveView] = useState<'current' | 'baseline'>('current');
+  
+  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
 
 
   const activeReading = historicalData[activeReadingIndex] || null;
@@ -71,6 +124,7 @@ export default function App(): React.ReactNode {
       const dataToSave = JSON.stringify({
         baseline: baselineData,
         historical: historicalData,
+        changeRequests: changeRequests,
       }, null, 2);
       const blob = new Blob([dataToSave], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -102,6 +156,7 @@ export default function App(): React.ReactNode {
         if (data.baseline && data.historical && Array.isArray(data.historical)) {
           setBaselineData(data.baseline);
           setHistoricalData(data.historical);
+          setChangeRequests(data.changeRequests || []);
           setActiveReadingIndex(data.historical.length > 0 ? data.historical.length - 1 : 0);
           chatRef.current = null; // Reset chat session
           setChatHistory([]); // Clear chat history
@@ -147,6 +202,26 @@ export default function App(): React.ReactNode {
         setIsChatLoading(false);
     }
   }, [baselineData, historicalData]);
+  
+  const handleCreateChangeRequest = useCallback((rca: AIAnalysis['rootCauseAnalysis'][0]) => {
+    const newRequest: ChangeRequest = {
+        id: crypto.randomUUID(),
+        title: rca.cause,
+        justification: rca.reasoning,
+        recommendedAction: rca.recommendation,
+        expectedResults: '',
+        riskLevel: 'Low',
+        riskDetails: '',
+        estimatedCost: '',
+        status: 'Draft',
+    };
+    setChangeRequests(prev => [...prev, newRequest]);
+    // Scroll to the new panel
+    setTimeout(() => {
+        const element = document.getElementById('change-management-panel');
+        element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
 
   const handleDownloadTemplate = () => {
     if (!baselineData) return;
@@ -582,6 +657,9 @@ export default function App(): React.ReactNode {
     }
   };
 
+  if (!isAuthenticated) {
+    return <LoginOverlay onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -625,7 +703,21 @@ export default function App(): React.ReactNode {
               displayMode={activeView === 'current' ? 'live' : 'baseline'}
               setDisplayMode={(mode) => setActiveView(mode === 'live' ? 'current' : 'baseline')}
             />
-            <AnalysisPanel analysis={analysis} isLoading={isLoading} error={error} currentData={activeReading} />
+            <AnalysisPanel 
+                analysis={analysis} 
+                isLoading={isLoading} 
+                error={error} 
+                currentData={activeReading} 
+                onCreateChangeRequest={handleCreateChangeRequest}
+            />
+             <ChangeManagementPanel 
+                changeRequests={changeRequests}
+                setChangeRequests={setChangeRequests}
+                customerInfo={baselineData.customerInfo}
+                analysis={analysis}
+                baselineData={baselineData}
+                historicalData={historicalData}
+             />
             <SmartAgentPanel 
                 history={chatHistory} 
                 onSendMessage={handleSendMessage} 
