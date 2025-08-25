@@ -20,9 +20,11 @@ interface DataInputFormProps {
   setHighlightedZoneId: (id: string | null) => void;
   activeTab: DataType;
   setActiveTab: React.Dispatch<React.SetStateAction<DataType>>;
+  problemStatement: string;
+  setProblemStatement: React.Dispatch<React.SetStateAction<string>>;
 }
 
-type DataType = 'baseline' | 'current';
+type DataType = 'baseline' | 'current' | 'intake';
 
 const SubSystemSection = ({ subSystem, baselineSubSystem, onNameChange, onRemove, onDataChange, dataType, isEditable }: {
     subSystem: SubSystem;
@@ -30,7 +32,7 @@ const SubSystemSection = ({ subSystem, baselineSubSystem, onNameChange, onRemove
     onNameChange: (value: string) => void;
     onRemove: () => void;
     onDataChange: (path: string, value: string) => void;
-    dataType: DataType;
+    dataType: 'baseline' | 'current';
     isEditable: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState(true);
@@ -147,7 +149,7 @@ const ZoneSection = ({ zone, baselineZone, conveyorSpeed, handleChange, handleNa
     handleRemove: () => void;
     handleSubSystemAction: (action: 'add' | 'remove' | 'change' | 'name_change', payload: any) => void;
     isEditable: boolean;
-    dataType: DataType;
+    dataType: 'baseline' | 'current';
     highlightedZoneId: string | null;
 }): React.ReactNode => {
     const data = zone.data;
@@ -253,7 +255,7 @@ const ZoneSection = ({ zone, baselineZone, conveyorSpeed, handleChange, handleNa
 }
 
 
-const DataInputForm = ({ baselineData, setBaselineData, historicalData, setHistoricalData, activeReadingIndex, setActiveReadingIndex, onAnalyze, isLoading, highlightedZoneId, setHighlightedZoneId, activeTab, setActiveTab }: DataInputFormProps): React.ReactNode => {
+const DataInputForm = ({ baselineData, setBaselineData, historicalData, setHistoricalData, activeReadingIndex, setActiveReadingIndex, onAnalyze, isLoading, highlightedZoneId, setHighlightedZoneId, activeTab, setActiveTab, problemStatement, setProblemStatement }: DataInputFormProps): React.ReactNode => {
   const [zoneToDelete, setZoneToDelete] = useState<Zone | null>(null);
   const zoneRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -524,43 +526,68 @@ const DataInputForm = ({ baselineData, setBaselineData, historicalData, setHisto
   return (
     <div className="bg-panel p-4 rounded-lg shadow-md h-full flex flex-col">
       <div className="flex-shrink-0">
-        <div className="flex border-b border-border mb-4"><button className={`py-2 px-4 font-semibold ${activeTab === 'current' ? 'text-interactive border-b-2 border-interactive' : 'text-text-secondary'}`} onClick={() => setActiveTab('current')}>Measured Data</button><button className={`py-2 px-4 font-semibold ${activeTab === 'baseline' ? 'text-interactive border-b-2 border-interactive' : 'text-text-secondary'}`} onClick={() => setActiveTab('baseline')}>Baseline Design Data</button></div>
-      </div>
-      
-      {activeTab === 'current' && ( <div className="flex-shrink-0 bg-slate-100 p-3 rounded-lg mb-4 space-y-2"><div><label className="block text-sm font-medium text-text-secondary">Readings Manager</label><div className="flex gap-2 mt-1"><select value={activeReadingIndex} onChange={(e) => setActiveReadingIndex(Number(e.target.value))} className="flex-grow w-full bg-background border border-border rounded-md p-2 focus:ring-interactive focus:border-interactive">{historicalData.map((reading, index) => (<option key={index} value={index}>Reading from: {reading.collectionDate.value || `Reading ${index + 1}`}</option>))}</select><button onClick={handleAddNewReading} className="px-3 py-2 bg-slate-200 text-text-primary font-semibold rounded-md hover:bg-slate-300 text-sm" title="Add New Reading">+</button><button onClick={handleDeleteReading} className="px-3 py-2 bg-slate-200 text-danger font-semibold rounded-md hover:bg-red-200 text-sm" title="Delete Selected Reading">-</button></div></div><div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary pt-2"><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-success rounded-sm"></span><span>In-Compliance</span></div><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-warning rounded-sm"></span><span>Warning (&gt;5% dev.)</span></div><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-danger rounded-sm"></span><span>Critical (&gt;10% dev.)</span></div></div></div>)}
-
-      <div className="flex-shrink-0 border-b border-border pb-4 mb-4 space-y-2">
-        <button onClick={onAnalyze} disabled={isLoading || historicalData.length === 0} className="w-full bg-interactive text-white font-bold py-3 px-4 rounded-lg hover:bg-interactive-hover transition duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center">{isLoading ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Analyzing...</>) : ('Run Process Analysis')}</button>
-         {activeTab === 'baseline' && <button onClick={handleAddZone} className="w-full bg-slate-200 text-text-primary font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition duration-300 flex items-center justify-center">+ Add Process Stage</button>}
-      </div>
-
-      <div className="flex-grow overflow-y-auto pr-2 space-y-6">
-        <div><h4 className="col-span-full font-semibold text-heading border-b border-border pb-1">Customer Information</h4><div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4"><div className="sm:col-span-2"><ParameterInput label="Customer Name" unit="" value={data.customerInfo?.name?.value || ''} onChange={(e) => handleCustomerInfoChange('name', e.target.value)} dataType={activeTab} type="text" readOnly={activeTab === 'current'}/></div><ParameterInput label="Location / Site" unit="" value={data.customerInfo?.location?.value || ''} onChange={(e) => handleCustomerInfoChange('location', e.target.value)} dataType={activeTab} type="text" readOnly={activeTab === 'current'}/><ParameterInput label="Contact Person" unit="" value={data.customerInfo?.contactPerson?.value || ''} onChange={(e) => handleCustomerInfoChange('contactPerson', e.target.value)} dataType={activeTab} type="text" readOnly={activeTab === 'current'}/></div></div>
-        <div><h4 className="col-span-full font-semibold text-heading border-b border-border pb-1">General Process</h4><div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">{activeTab === 'current' && (<><ParameterInput label="Data Collection Date" unit="" value={data.collectionDate.value} onChange={(e) => handleCollectionDateChange(e.target.value)} dataType="current" type="date"/><ParameterInput label="Time of Day" unit="" value={data.timeOfDay?.value || ''} onChange={(e) => handleGeneralFieldChange('timeOfDay', e.target.value)} dataType="current" type="time"/></>)}<ParameterInput label="Conveyor Speed" unit="ft/min" value={data.conveyorSpeed.value} onChange={(e) => handleConveyorSpeedChange(e.target.value)} dataType={activeTab} baselineValue={baselineData.conveyorSpeed.value} /><div><label className="block text-sm font-medium text-text-secondary mb-1">Product Size</label><select value={data.productSize} onChange={handleProductSizeChange} className={`w-full bg-background border border-border rounded-md p-2 focus:ring-interactive focus:border-interactive ${!data.productSize ? 'text-slate-400 italic' : 'text-text-primary'} ${bgClass}`}><option value="" disabled>Select Size</option><option value="Car">Car</option><option value="SUV">SUV</option></select></div>{activeTab === 'current' && (<><ParameterInput label="Outside Temperature" unit="°F" value={data.outsideTemperature?.value || ''} onChange={(e) => handleGeneralFieldChange('outsideTemperature', e.target.value)} dataType="current" /><ParameterInput label="Outside Rel. Humidity" unit="%" value={data.outsideRelativeHumidity?.value || ''} onChange={(e) => handleGeneralFieldChange('outsideRelativeHumidity', e.target.value)} dataType="current" /></>)}</div></div>
-        <div>
-            <h4 className="col-span-full font-semibold text-heading mt-4 border-b border-border pb-1">Process Stages</h4>
-            {baselineData.zones.map((baselineZone) => {
-                const zoneForDisplay = activeTab === 'baseline' ? baselineZone : (data.zones.find(z => z.id === baselineZone.id) || baselineZone);
-                return (
-                    <div key={baselineZone.id} ref={el => { zoneRefs.current[baselineZone.id] = el; }}>
-                        <ZoneSection
-                            zone={zoneForDisplay}
-                            baselineZone={baselineZone}
-                            conveyorSpeed={baselineData.conveyorSpeed.value}
-                            handleChange={(path, value) => handleZoneChange(baselineZone.id, path, value)}
-                            handleNameChange={(value) => handleZoneNameChange(baselineZone.id, value)}
-                            handleDesignChange={(value) => handleZoneDesignChange(baselineZone.id, value)}
-                            handleRemove={() => handleRequestRemoveZone(baselineZone)}
-                            handleSubSystemAction={(action, payload) => handleSubSystemAction(baselineZone.id, action, payload)}
-                            isEditable={activeTab === 'baseline'}
-                            dataType={activeTab}
-                            highlightedZoneId={highlightedZoneId}
-                        />
-                    </div>
-                );
-            })}
+        <div className="flex border-b border-border mb-4">
+            <button className={`py-2 px-4 font-semibold ${activeTab === 'intake' ? 'text-interactive border-b-2 border-interactive' : 'text-text-secondary'}`} onClick={() => setActiveTab('intake')}>Intake Information</button>
+            <button className={`py-2 px-4 font-semibold ${activeTab === 'current' ? 'text-interactive border-b-2 border-interactive' : 'text-text-secondary'}`} onClick={() => setActiveTab('current')}>Measured Data</button>
+            <button className={`py-2 px-4 font-semibold ${activeTab === 'baseline' ? 'text-interactive border-b-2 border-interactive' : 'text-text-secondary'}`} onClick={() => setActiveTab('baseline')}>Baseline Design Data</button>
         </div>
       </div>
+      
+      {activeTab === 'intake' && (
+         <div className="flex-grow overflow-y-auto pr-2 space-y-6">
+            <div>
+                <h4 className="col-span-full font-semibold text-heading border-b border-border pb-1">Problem Statement</h4>
+                <p className="text-sm text-text-secondary mt-2 mb-2">Describe the specific issue you are investigating. This context will help the AI provide a more focused and relevant analysis.</p>
+                <textarea
+                    rows={15}
+                    value={problemStatement}
+                    onChange={(e) => setProblemStatement(e.target.value)}
+                    placeholder="e.g., 'We are experiencing blistering on the rear quarter panels of SUVs after the heated flash stage. This seems to occur most often on humid days.'"
+                    className="w-full bg-background border border-border text-text-primary rounded-md p-2 focus:ring-interactive focus:border-interactive placeholder:italic"
+                />
+            </div>
+        </div>
+      )}
+
+      {activeTab !== 'intake' && (
+        <>
+            {activeTab === 'current' && ( <div className="flex-shrink-0 bg-slate-100 p-3 rounded-lg mb-4 space-y-2"><div><label className="block text-sm font-medium text-text-secondary">Readings Manager</label><div className="flex gap-2 mt-1"><select value={activeReadingIndex} onChange={(e) => setActiveReadingIndex(Number(e.target.value))} className="flex-grow w-full bg-background border border-border rounded-md p-2 focus:ring-interactive focus:border-interactive">{historicalData.map((reading, index) => (<option key={index} value={index}>Reading from: {reading.collectionDate.value || `Reading ${index + 1}`}</option>))}</select><button onClick={handleAddNewReading} className="px-3 py-2 bg-slate-200 text-text-primary font-semibold rounded-md hover:bg-slate-300 text-sm" title="Add New Reading">+</button><button onClick={handleDeleteReading} className="px-3 py-2 bg-slate-200 text-danger font-semibold rounded-md hover:bg-red-200 text-sm" title="Delete Selected Reading">-</button></div></div><div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary pt-2"><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-success rounded-sm"></span><span>In-Compliance</span></div><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-warning rounded-sm"></span><span>Warning (&gt;5% dev.)</span></div><div className="flex items-center gap-1.5"><span className="w-3 h-3 border-2 border-danger rounded-sm"></span><span>Critical (&gt;10% dev.)</span></div></div></div>)}
+
+            <div className="flex-shrink-0 border-b border-border pb-4 mb-4 space-y-2">
+                <button onClick={onAnalyze} disabled={isLoading || historicalData.length === 0} className="w-full bg-interactive text-white font-bold py-3 px-4 rounded-lg hover:bg-interactive-hover transition duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center">{isLoading ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Analyzing...</>) : ('Run Process Analysis')}</button>
+                {activeTab === 'baseline' && <button onClick={handleAddZone} className="w-full bg-slate-200 text-text-primary font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition duration-300 flex items-center justify-center">+ Add Process Stage</button>}
+            </div>
+
+            <div className="flex-grow overflow-y-auto pr-2 space-y-6">
+                <div><h4 className="col-span-full font-semibold text-heading border-b border-border pb-1">Customer Information</h4><div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4"><div className="sm:col-span-2"><ParameterInput label="Customer Name" unit="" value={data.customerInfo?.name?.value || ''} onChange={(e) => handleCustomerInfoChange('name', e.target.value)} dataType={activeTab as 'baseline' | 'current'} type="text" readOnly={activeTab === 'current'}/></div><ParameterInput label="Location / Site" unit="" value={data.customerInfo?.location?.value || ''} onChange={(e) => handleCustomerInfoChange('location', e.target.value)} dataType={activeTab as 'baseline' | 'current'} type="text" readOnly={activeTab === 'current'}/><ParameterInput label="Contact Person" unit="" value={data.customerInfo?.contactPerson?.value || ''} onChange={(e) => handleCustomerInfoChange('contactPerson', e.target.value)} dataType={activeTab as 'baseline' | 'current'} type="text" readOnly={activeTab === 'current'}/></div></div>
+                <div><h4 className="col-span-full font-semibold text-heading border-b border-border pb-1">General Process</h4><div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">{activeTab === 'current' && (<><ParameterInput label="Data Collection Date" unit="" value={data.collectionDate.value} onChange={(e) => handleCollectionDateChange(e.target.value)} dataType="current" type="date"/><ParameterInput label="Time of Day" unit="" value={data.timeOfDay?.value || ''} onChange={(e) => handleGeneralFieldChange('timeOfDay', e.target.value)} dataType="current" type="time"/></>)}<ParameterInput label="Conveyor Speed" unit="ft/min" value={data.conveyorSpeed.value} onChange={(e) => handleConveyorSpeedChange(e.target.value)} dataType={activeTab as 'baseline' | 'current'} baselineValue={baselineData.conveyorSpeed.value} /><div><label className="block text-sm font-medium text-text-secondary mb-1">Product Size</label><select value={data.productSize} onChange={handleProductSizeChange} className={`w-full bg-background border border-border rounded-md p-2 focus:ring-interactive focus:border-interactive ${!data.productSize ? 'text-slate-400 italic' : 'text-text-primary'} ${bgClass}`}><option value="" disabled>Select Size</option><option value="Car">Car</option><option value="SUV">SUV</option></select></div>{activeTab === 'current' && (<><ParameterInput label="Outside Temperature" unit="°F" value={data.outsideTemperature?.value || ''} onChange={(e) => handleGeneralFieldChange('outsideTemperature', e.target.value)} dataType="current" /><ParameterInput label="Outside Rel. Humidity" unit="%" value={data.outsideRelativeHumidity?.value || ''} onChange={(e) => handleGeneralFieldChange('outsideRelativeHumidity', e.target.value)} dataType="current" /></>)}</div></div>
+                <div>
+                    <h4 className="col-span-full font-semibold text-heading mt-4 border-b border-border pb-1">Process Stages</h4>
+                    {baselineData.zones.map((baselineZone) => {
+                        const zoneForDisplay = activeTab === 'baseline' ? baselineZone : (data.zones.find(z => z.id === baselineZone.id) || baselineZone);
+                        return (
+                            <div key={baselineZone.id} ref={el => { zoneRefs.current[baselineZone.id] = el; }}>
+                                <ZoneSection
+                                    zone={zoneForDisplay}
+                                    baselineZone={baselineZone}
+                                    conveyorSpeed={baselineData.conveyorSpeed.value}
+                                    handleChange={(path, value) => handleZoneChange(baselineZone.id, path, value)}
+                                    handleNameChange={(value) => handleZoneNameChange(baselineZone.id, value)}
+                                    handleDesignChange={(value) => handleZoneDesignChange(baselineZone.id, value)}
+                                    handleRemove={() => handleRequestRemoveZone(baselineZone)}
+                                    handleSubSystemAction={(action, payload) => handleSubSystemAction(baselineZone.id, action, payload)}
+                                    isEditable={activeTab === 'baseline'}
+                                    dataType={activeTab as 'baseline' | 'current'}
+                                    highlightedZoneId={highlightedZoneId}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </>
+      )}
+
       <ConfirmationModal isOpen={!!zoneToDelete} onClose={() => setZoneToDelete(null)} onConfirm={handleConfirmRemoveZone} title="Delete Process Stage?"><p>Are you sure you want to permanently delete the <strong className="text-text-primary">{zoneToDelete?.name}</strong> stage?</p><p className="mt-2 text-sm">This action cannot be undone and will remove it from all data sets.</p></ConfirmationModal>
     </div>
   );

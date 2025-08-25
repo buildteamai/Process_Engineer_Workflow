@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { ProcessData, AIAnalysis, ChatMessage, AirSystemData, SubSystem, Zone, FanMotorData, DuctworkData, ChangeRequest } from './types';
 import type { Chat } from '@google/genai';
@@ -25,7 +26,7 @@ const LoginOverlay = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '123456') {
+    if (password === 'kb1970') {
       onLoginSuccess();
     } else {
       setError('Invalid password. Please try again.');
@@ -69,6 +70,7 @@ export default function App(): React.ReactNode {
   const [baselineData, setBaselineData] = useState<ProcessData>(() => JSON.parse(JSON.stringify(BLANK_PROCESS_DATA)));
   const [historicalData, setHistoricalData] = useState<ProcessData[]>(() => [JSON.parse(JSON.stringify(BLANK_PROCESS_DATA))]);
   const [activeReadingIndex, setActiveReadingIndex] = useState<number>(0);
+  const [problemStatement, setProblemStatement] = useState<string>('');
 
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -82,7 +84,7 @@ export default function App(): React.ReactNode {
   
   const [isTrendChartVisible, setIsTrendChartVisible] = useState<boolean>(false);
   const [justLoaded, setJustLoaded] = useState<boolean>(false);
-  const [activeView, setActiveView] = useState<'current' | 'baseline'>('current');
+  const [activeView, setActiveView] = useState<'current' | 'baseline' | 'intake'>('intake');
   
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
 
@@ -109,7 +111,7 @@ export default function App(): React.ReactNode {
       if (historicalData.length === 0) {
         throw new Error("No current data available to analyze.");
       }
-      const result = await analyzeProcessData(baselineData, historicalData);
+      const result = await analyzeProcessData(baselineData, historicalData, problemStatement);
       setAnalysis(result);
     } catch (err) {
       console.error(err);
@@ -117,7 +119,7 @@ export default function App(): React.ReactNode {
     } finally {
       setIsLoading(false);
     }
-  }, [baselineData, historicalData]);
+  }, [baselineData, historicalData, problemStatement]);
 
   const handleSaveConfiguration = () => {
     try {
@@ -125,6 +127,7 @@ export default function App(): React.ReactNode {
         baseline: baselineData,
         historical: historicalData,
         changeRequests: changeRequests,
+        problemStatement: problemStatement,
       }, null, 2);
       const blob = new Blob([dataToSave], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -157,6 +160,7 @@ export default function App(): React.ReactNode {
           setBaselineData(data.baseline);
           setHistoricalData(data.historical);
           setChangeRequests(data.changeRequests || []);
+          setProblemStatement(data.problemStatement || '');
           setActiveReadingIndex(data.historical.length > 0 ? data.historical.length - 1 : 0);
           chatRef.current = null; // Reset chat session
           setChatHistory([]); // Clear chat history
@@ -191,7 +195,7 @@ export default function App(): React.ReactNode {
 
     try {
         if (!chatRef.current) {
-            chatRef.current = initializeChatSession(baselineData, historicalData);
+            chatRef.current = initializeChatSession(baselineData, historicalData, problemStatement);
         }
         const responseText = await querySmartAgent(chatRef.current, message);
         setChatHistory(prev => [...prev, { role: 'model', content: responseText }]);
@@ -201,7 +205,7 @@ export default function App(): React.ReactNode {
     } finally {
         setIsChatLoading(false);
     }
-  }, [baselineData, historicalData]);
+  }, [baselineData, historicalData, problemStatement]);
   
   const handleCreateChangeRequest = useCallback((rca: AIAnalysis['rootCauseAnalysis'][0]) => {
     const newRequest: ChangeRequest = {
@@ -693,6 +697,8 @@ export default function App(): React.ReactNode {
               setHighlightedZoneId={setHighlightedZoneId}
               activeTab={activeView}
               setActiveTab={setActiveView}
+              problemStatement={problemStatement}
+              setProblemStatement={setProblemStatement}
             />
           </div>
           <div className="xl:col-span-8 flex flex-col gap-8">
@@ -717,6 +723,7 @@ export default function App(): React.ReactNode {
                 analysis={analysis}
                 baselineData={baselineData}
                 historicalData={historicalData}
+                problemStatement={problemStatement}
              />
             <SmartAgentPanel 
                 history={chatHistory} 

@@ -211,472 +211,178 @@ The primary function of the fresh air system is to remove evaporated water. The 
     *   Water content by volume: 60%
     *   Specific gravity of water: 8.34 lbs/gal
     *   Water evaporated per hour: 15 gal/hr * 0.60 * 8.34 lbs/gal = 75.06 lbs/hr
-    *   Convert to CFM (cubic feet per minute) of water vapor: 75.06 lbs/hr / 60 min/hr = 1.251 lbs/min
-    *   The specific volume of water vapor at typical drying temperatures (e.g., 150 F) is approximately 23.2 ft^3/lb.
-    *   Required flow for water removal: 1.251 lbs/min * 23.2 ft^3/lb = 29.02 CFM
+    *   Convert to CFM (cubic feet per minute) of water vapor: 75.06 lbs/hr / 60 min/hr = 1.25 lbs/min. At standard conditions, this is about 21 cfm of pure water vapor. The required airflow will be much higher to keep humidity low.
 
-**2. Volatile Organic Compound (VOC) Emission**
-Although waterborne paints have low VOCs, they are not zero. The system must meet regulatory standards.
-*   **Consideration:** The system must dilute VOCs to below the permissible exposure limit (PEL) or lower explosive limit (LEL).
+**2. Humidity Control**
+The air must be dry enough to create a vapor pressure differential that drives evaporation.
+*   **Consideration:** The target relative humidity inside the flash-off zone is critical. This determines how much moisture the air can absorb.
 *   **Sample Calculation:**
-    *   Primer VOC content: 0.5 lbs/gal
-    *   Application rate: 15 gal/hr
-    *   Total VOCs: 15 gal/hr * 0.5 lbs/gal = 7.5 lbs/hr
-    *   Required air volume for dilution: This requires a complex calculation based on the specific VOC and its PEL, but a common rule of thumb is to provide 1,000 to 1,500 CFM per gallon of paint applied to maintain safety and compliance. A simpler approach is to use the water evaporation calculation as the primary driver, assuming that provides adequate dilution for low-VOC products.
+    *   Target internal RH: 50% at 150 F
+    *   Moisture content at 50% RH, 150 F: ~0.04 lbs of water per lb of dry air.
+    *   Moisture content of incoming fresh air: Assume 70% RH at 75 F, which is ~0.013 lbs of water per lb of dry air.
+    *   Moisture absorption capacity per lb of air: 0.04 - 0.013 = 0.027 lbs water.
+    *   Required mass flow of air: 1.25 lbs water/min / 0.027 lbs water/lb air = 46.3 lbs dry air/min.
+    *   Convert to CFM: At standard density (0.075 lbs/ft^3), this is 46.3 / 0.075 = ~617 CFM. This is a simplified calculation; a real one would use psychrometric charts or software.
 
-**3. Airflow Velocity over Parts**
-The air velocity across the parts determines the rate of mass transfer (evaporation).
-*   **Consideration:** The air must be fast enough to promote drying but not so fast as to cause defects like blushing or film distortion.
+**3. Temperature Control**
+The air must be heated to provide the latent heat of vaporization for the water.
+*   **Consideration:** The heater's capacity (BTU/hr) must be sufficient to raise the air temperature and evaporate the water.
 *   **Sample Calculation:**
-    *   Desired air velocity: 150 fpm (feet per minute)
-    *   Oven cross-sectional area: 10 ft * 8 ft = 80 ft^2
-    *   Required volumetric flow rate: 150 fpm * 80 ft^2 = 12,000 CFM
-    *   This is a general calculation for the entire tunnel. The local velocity at the part surface will be higher due to impingement nozzles.
-
-**4. Oven Air Changes Per Hour (ACH)**
-ACH is a key metric for overall air replacement and is often specified by industry standards or local codes.
-*   **Consideration:** The system should replace the entire volume of air in the dehydration oven a certain number of times per hour to ensure all contaminants are removed.
-*   **Sample Calculation:**
-    *   Oven volume: 50 ft * 10 ft * 8 ft = 4,000 ft^3
-    *   Required ACH: 60 ACH (a common value for paint ovens)
-    *   Required CFM: (4000 * 60) / 60 = 4,000 CFM
-
-**5. Temperature and Humidity of Fresh Air**
-The properties of the incoming fresh air significantly impact the drying process.
-*   **Consideration:** The fresh air needs to be heated and possibly dehumidified to meet the process requirements of the heated flash zone.
-*   **Sample Calculation:**
-    *   **Heating Load:**
-    *   Incoming air temperature (T_in): 40 F
-    *   Required temperature (T_req): 150 F
-    *   Air density: 0.075 lbs/ft^3
-    *   Specific heat of air: 0.24 BTU/lb F
-    *   Airflow: 12,000 CFM
-    *   Heat Load (BTU/hr): 12000 * 60 * 0.075 * 0.24 * (150 - 40) = 1,425,600 BTU/hr
-    *   **Dehumidification Load:** This requires a complex psychrometric calculation based on the change in moisture content. The total BTU load is the sum of the sensible (heating) and latent (dehumidification) loads.
-
-**6. Filter Pressure Drop**
-Fresh air systems use filters to prevent contamination. The fan must be powerful enough to overcome the resistance of the filters.
-*   **Consideration:** As filters become loaded with dust, the pressure drop increases, reducing airflow. The fan static pressure rating must account for this.
-*   **Sample Calculation:**
-    *   Initial pressure drop across filters: 0.5 in. w.g. (inches of water gauge)
-    *   Final (clogged) pressure drop: 1.5 in. w.g.
-    *   The fan must be selected to operate efficiently up to the maximum expected pressure drop.
-
-**7. Fan Sizing and Efficiency**
-The fan is the heart of the system. Its selection is based on the required airflow and static pressure.
-*   **Consideration:** The fan must be sized to deliver the required CFM against the total system static pressure (ductwork, filters, heaters, nozzles).
-*   **Sample Calculation:**
-    *   Required airflow (from ACH or velocity calcs): 12,000 CFM
-    *   Total system static pressure: 2.5 in. w.g.
-    *   Motor horsepower (HP) is calculated based on these parameters and fan efficiency.
-    *   Brake HP = (CFM * Static Pressure) / (6356 * Fan Efficiency)
-    *   For a fan with 65% efficiency, Brake HP = (12000 * 2.5) / (6356 * 0.65) = 7.26 HP. A 10 HP motor would be a good choice.
-
-**8. Ductwork Design**
-Properly sized ductwork minimizes pressure drop and ensures uniform air distribution.
-*   **Consideration:** Duct size, material, and layout affect static pressure and air velocity.
-*   **Sample Calculation:**
-    *   Main supply duct velocity: 2,500 fpm
-    *   Required airflow: 12,000 CFM
-    *   Duct cross-sectional area: 12000 CFM / 2500 fpm = 4.8 ft^2
-    *   Required duct diameter for a circular duct: sqrt((4 * 4.8) / PI) = 2.47 ft, or about 30 inches.
-
-**9. Makeup Air Balance**
-The fresh air supply system must be balanced with the exhaust system to maintain a slightly positive or negative pressure in the oven.
-*   **Consideration:** A slightly positive pressure prevents unfiltered air from entering the oven, while a negative pressure helps contain fumes. For a dehydration oven, a positive pressure is often desired.
-*   **Sample Calculation:**
-    *   Supply Fan Capacity: 12,000 CFM
-    *   Required Exhaust Fan Capacity: 11,500 CFM
-    *   This creates a positive pressure balance of 500 CFM into the surrounding facility, preventing infiltration of contaminants.
-
-**10. Energy Consumption**
-Operating a large fresh air system, especially one that heats or cools air, is energy-intensive.
-*   **Consideration:** The system should be designed to be as energy-efficient as possible, using variable frequency drives (VFDs) and heat recovery where feasible.
-*   **Sample Calculation:**
-    *   Motor HP: 10 HP
-    *   Hours of operation per year: 2,000 hrs
-    *   Power consumption: 10 HP * 0.746 kW/HP = 7.46 kW
-    *   Annual energy cost: 7.46 kW * 2000 hrs * $0.12/kWh = $1,790.40
-    *   This does not include the much larger heating or cooling costs. The heating cost from point 5 is 1,425,600 BTU/hr, which is approximately 418 kW. The annual heating cost would be significantly higher.
----
-**Sizing a Heated Flash-off System for Waterborne Paint Dehydration:**
-
-**1. Water Evaporation Rate**
-The primary consideration is removing the water from the paint. The system size is directly tied to the total water load.
-*   **Consideration:** The system must supply enough heat and airflow to evaporate the water content of the applied paint within the allotted time.
-*   **Sample Calculation:**
-    *   Application rate: 20 gallons/hr of paint.
-    *   Water content by volume: 60%.
-    *   Density of water: 8.34 lbs/gal.
-    *   Water to be evaporated: 20 gal/hr * 0.60 * 8.34 lbs/gal = 100.08 lbs/hr.
-    *   **Heat required (latent heat of vaporization):**
-    *   Latent heat of vaporization of water at 150°F is approximately 1007 BTU/lb.
-    *   Total heat load: 100.08 lbs/hr * 1007 BTU/lb = 100,780.56 BTU/hr.
-
-**2. Air Temperature and Humidity**
-The air's temperature and humidity are critical for effective drying. The system must supply hot, dry air.
-*   **Consideration:** The temperature of the supplied air determines the heat transfer rate. Its humidity must be low to maintain a high vapor pressure differential between the paint and the air, promoting evaporation.
-*   **Sample Calculation:**
-    *   Drying air temperature (T_d): 150°F.
-    *   Incoming ambient air temperature (T_a): 70°F.
-    *   Required temperature rise (Delta_T): 150°F - 70°F = 80°F.
-    *   Air specific heat: 0.24 BTU/lb°F.
-    *   Required airflow (from later calculations): 5000 CFM.
-    *   Air density: 0.075 lbs/ft^3.
-    *   Sensible heating load: 5000 CFM * 60 min/hr * 0.075 lbs/ft^3 * 0.24 BTU/lb°F * 80°F = 432,000 BTU/hr.
-
-**3. Air Velocity and Impingement**
-Airflow must be directed at the part to break up the static boundary layer of humid air and maximize mass transfer.
-*   **Consideration:** The velocity and angle of impingement affect drying speed. Too low a velocity leads to slow drying; too high can cause surface defects.
-*   **Sample Calculation:**
-    *   Target air velocity over parts: 500 fpm (feet per minute).
-    *   Flash-off zone cross-sectional area: 5 ft * 8 ft = 40 ft^2.
-    *   Required CFM for the zone: 500 fpm * 40 ft^2 = 20,000 CFM.
-    *   This is the total air circulated within the system, not the fresh air intake.
-
-**4. Ventilation and Exhaust**
-The system must remove the humid, saturated air to maintain efficient drying conditions.
-*   **Consideration:** A portion of the circulated air, equal to the fresh air intake, must be exhausted. The exhaust rate must be sufficient to remove water vapor and any residual VOCs.
-*   **Sample Calculation:**
-    *   The volume of exhausted air should at least match the required fresh air makeup. A common benchmark for paint ovens is 60 air changes per hour (ACH).
-    *   Flash-off zone volume: 15 ft * 5 ft * 8 ft = 600 ft^3.
-    *   Required exhaust CFM: (600 ft^3 * 60 ACH) / 60 min/hr = 600 CFM.
-
-**5. Heating System Sizing**
-The heater must be sized to handle the combined sensible and latent heat loads.
-*   **Consideration:** The heater (gas burner or electric coils) must provide enough BTU/hr to heat the fresh air and supply the latent heat of vaporization for the water.
-*   **Sample Calculation:**
-    *   Sensible heat load (from point 2): 432,000 BTU/hr.
-    *   Latent heat load (from point 1): 100,780.56 BTU/hr.
-    *   Total heating load: 432,000 + 100,780.56 = 532,780.56 BTU/hr.
-    *   This is the required output of the heater.
-
-**6. Recirculation Airflow**
-Heated flash-off systems typically recirculate a large volume of air to reduce energy consumption.
-*   **Consideration:** The total air volume being moved through the flash-off zone is much larger than the fresh air intake. The recirculation fan must be sized for this total airflow.
-*   **Sample Calculation:**
-    *   Target air changes for recirculation: 120 ACH (a high value for an oven)
-    *   Flash-off zone volume: 600 ft^3.
-    *   Required recirculation CFM: (600 ft^3 * 120 ACH) / 60 min/hr = 1200 CFM.
-    *   This is the airflow the main recirculation fan must handle.
-
-**7. Fan Static Pressure**
-The fan must overcome the resistance of all components in the airflow path.
-*   **Consideration:** The system fan's static pressure must be high enough to push air through the filters, heating coils, ductwork, and impingement nozzles.
-*   **Sample Calculation:**
-    *   **Components pressure drop:**
-    *   Filters: 0.5 in. w.g.
-    *   Heating coils: 0.2 in. w.g.
-    *   Ductwork and fittings: 1.0 in. w.g.
-    *   Impingement nozzles: 1.5 in. w.g.
-    *   Total static pressure: 0.5 + 0.2 + 1.0 + 1.5 = 3.2 in. w.g.
-    *   The fan selected must be able to deliver the required CFM at this static pressure.
-
-**8. Conveyor Dwell Time**
-The length of the heated flash-off zone depends on the required drying time and the conveyor speed.
-*   **Consideration:** The system must be long enough to allow sufficient time for water to evaporate at the given drying conditions.
-*   **Sample Calculation:**
-    *   Required drying time (from paint supplier specs): 5 minutes.
-    *   Conveyor speed: 10 fpm.
-    *   Minimum zone length: 10 fpm * 5 min = 50 ft.
-
-**9. Make-up Air System**
-This system brings in fresh, conditioned air to replace exhausted air.
-*   **Consideration:** The make-up air unit (AMU) must be sized to match the exhaust fan capacity to maintain proper pressure balance. It must also have the heating capacity to condition this air.
-*   **Sample Calculation:**
-    *   Required fresh air makeup (from point 4): 600 CFM.
-    *   Required sensible heating load for makeup air (from point 2 calculation but for a smaller CFM):
-    *   600 CFM * 60 min/hr * 0.075 lbs/ft^3 * 0.24 BTU/lb°F * 80°F = 51,840 BTU/hr.
-    *   This is the minimum heating capacity for the make-up air unit.
-
-**10. Energy Consumption**
-Operating costs are a major factor in system design.
-*   **Consideration:** The total energy consumption includes the fuel for heating and the electricity for the fans and controls.
-*   **Sample Calculation:**
-    *   Total heating load (from point 5): 532,780.56 BTU/hr.
-    *   Fuel cost: Natural gas at 1 therm ≈ 100,000 BTU. Price at $1.50/therm.
-    *   Hourly fuel cost: (532,780.56 BTU/hr / 100,000 BTU/therm) * $1.50/therm = $7.99/hr.
-    *   Fan power (from a fan selection software or formula): A fan moving 1200 CFM at 3.2 in. w.g. static pressure will require approximately 1 HP, or 0.746 kW.
-    *   Hourly electrical cost: 0.746 kW * $0.12/kWh = $0.09/hr. The heating cost is the dominant factor.
----
-**Sizing a Cooler System Following Heated Flash-off:**
-
-**1. Desired Cooling Rate**
-The rate at which the parts are cooled must be controlled to prevent thermal shock, which can cause cracking, delamination, or other surface defects.
-* **Consideration:** The cooling rate is a function of the heat load removed, the airflow, and the duration of cooling.
-* **Sample Calculation:**
-    * Part temperature entering cooler (T_in): 150°F
-    * Part temperature leaving cooler (T_out): 90°F
-    * Conveyor speed: 10 fpm
-    * Desired cooling time (t_cool): 3 minutes
-    * Required cooler length: 10 fpm * 3 min = 30 ft
-    * Average cooling rate: (150°F - 90°F) / 3 min = 20°F/min
-
-**2. Total Heat Load to Be Removed**
-The heat load is the primary driver for sizing the cooling system. This includes heat from the parts and the heat absorbed by the air.
-* **Consideration:** The total heat load is the sum of the sensible heat from the parts and the heat absorbed by the cooling air.
-* **Sample Calculation:**
-    * Part weight: 20 lbs
-    * Part specific heat: 0.11 BTU/lb°F (for steel)
-    * Number of parts: 100 parts/hr
-    * Part temperature drop (ΔT): 150°F - 90°F = 60°F
-    * Heat load from parts: 20 lbs * 0.11 BTU/lb°F * 60°F * 100 parts/hr = 13,200 BTU/hr
-    * This is the minimum heat the cooling system must be able to remove.
-
-**3. Cooling Airflow and Air Changes**
-The volumetric flow rate of cooling air determines its capacity to absorb heat and carry it away.
-* **Consideration:** The airflow must be high enough to absorb the heat load without an excessive temperature rise in the air itself.
-* **Sample Calculation:**
-    * Cooler volume: 30 ft * 8 ft * 5 ft = 1,200 ft^3
-    * Desired air changes per hour (ACH): 60 ACH
-    * Required airflow: (1,200 ft^3 * 60 ACH) / 60 min/hr = 1,200 CFM
-
-**4. Cooling System Type**
-The type of cooling system impacts efficiency, cost, and maintenance.
-* **Consideration:** Options include simple ambient air circulation, air conditioning (chilled water), or evaporative cooling.
-* **Sample Calculation:**
-    * Heat removed from parts: 13,200 BTU/hr
-    * Airflow: 1,200 CFM
-    * Air density: 0.075 lbs/ft^3
-    * Air specific heat: 0.24 BTU/lb°F
-    * Air temperature rise: 13,200 BTU/hr / (1,200 CFM * 60 min/hr * 0.075 lbs/ft^3 * 0.24 BTU/lb°F) = 10.19°F
-
-**5. Condensation Prevention**
-Condensation on the parts can ruin the finish and should be prevented.
-* **Consideration:** The surface temperature of the parts leaving the cooler must be above the dew point of the surrounding ambient air.
-* **Sample Calculation:**
-    * Part exit temperature: 90°F
-    * Ambient air temperature: 85°F
-    * Ambient relative humidity: 70%
-    * Dew point of ambient air is approximately 75°F.
-    * Temperature difference: 90°F - 75°F = 15°F. Since the part temperature is well above the dew point, condensation is not a concern.
-
-**6. Ductwork and Fan Sizing**
-The fan must be powerful enough to move the required air volume against system resistance.
-* **Consideration:** The fan is selected based on the required CFM and the system's static pressure.
-* **Sample Calculation:**
-    * Required airflow: 1,200 CFM
-    * Expected static pressure: 0.75 in. w.g.
-    * Motor horsepower: BHP = (CFM * in. w.g.) / (6356 * Fan Efficiency)
-    * For a fan with 60% efficiency: BHP = (1,200 * 0.75) / (6356 * 0.60) = 0.24 HP. A 0.5 HP motor would be a safe choice.
-
-**7. Temperature Uniformity**
-Uneven cooling can lead to internal stresses and an inconsistent finish.
-* **Consideration:** The system should be designed with baffles or plenums to ensure uniform airflow.
-* **Sample Calculation:**
-    * Target temperature variance: ±3°F
-    * Measurements: T_max = 93°F, T_min = 88°F
-    * Temperature range: 93°F - 88°F = 5°F. This is outside the ±3°F tolerance, indicating a need for airflow adjustments.
-
-**8. Part Conveyor Speed**
-The conveyor speed dictates the part's dwell time in the cooler.
-* **Consideration:** Conveyor speed must be stable and consistent.
-* **Sample Calculation:**
-    * Required dwell time: 3 minutes
-    * Cooler length: 30 ft
-    * Required conveyor speed: 30 ft / 3 min = 10 fpm
-
-**9. Filter Selection**
-Filters prevent contaminants from being blown onto the parts during cooling.
-* **Consideration:** Filters should be selected based on their efficiency (MERV rating) and pressure drop.
-* **Sample Calculation:**
-    * MERV 8 filters are a good choice. Their initial pressure drop at 1,200 CFM is typically 0.15 in. w.g. This must be included in the fan static pressure calculation.
-
-**10. Energy Consumption**
-Running the fan and any active cooling equipment adds to the operating cost.
-* **Consideration:** Energy consumption is a function of the fan motor horsepower and the hours of operation.
-* **Sample Calculation:**
-    * Fan motor power: 0.5 HP * 0.746 kW/HP = 0.373 kW
-    * Hours of operation: 2,000 hrs/year
-    * Electricity cost: 0.373 kW * 2,000 hrs * $0.12/kWh = $89.52/year
----
-**Air Velocity Measurement and Calculation Principles (Shortridge Tube Method):**
-
-**1. Velocity Pressure**
-The Shortridge tube measures velocity pressure (P_v), which is the kinetic energy of the air. This is the difference between the total pressure (P_t) and the static pressure (P_s) in the duct.
-* **Calculation:** P_v = P_t - P_s
-* **Example:** A Pitot tube measures P_t = 0.85 in. w.g. and P_s = 0.60 in. w.g.. The velocity pressure is P_v = 0.85 - 0.60 = 0.25 in. w.g.
-
-**2. Air Density Correction**
-Air density varies with temperature and pressure. Standard air density is 0.075 lbs/ft^3 at 70°F. The actual velocity must be corrected for the air density at the time of measurement.
-* **Calculation:** V_actual = 4005 * sqrt(P_v / ρ_actual) where ρ_actual is the actual air density in lbs/ft^3.
-* **Example:** If the air is at 150°F, its density is approximately 0.064 lbs/ft^3. A reading of 0.25 in. w.g. corresponds to V_actual = 4005 * sqrt(0.25 / 0.064) = 7916 fpm.
-
-**3. Traverse Points**
-A single reading is not representative of the average velocity in a duct. A traverse is a series of measurements taken across the duct to get a representative average.
-* **Calculation:** The average velocity is the arithmetic average of the square roots of the velocity pressures at each point in the traverse.
-
-**4. Duct Shape and Size**
-The traverse points depend on the duct's shape and size.
-* **Consideration:** For a rectangular duct, the equal-area method is used. The duct is divided into a grid of equal-area subsections, and velocity pressure is measured at the center of each.
-
-**5. Straight Duct Run**
-To ensure the airflow is laminar, measurements should be taken in a section of the duct with a long, straight run.
-* **Calculation:** Minimum straight run is typically 7.5 duct diameters downstream and 3.5 diameters upstream from any obstruction.
-* **Example:** For a 24-inch diameter duct, the downstream straight run should be at least 7.5 * 24 in. = 180 in. or 15 ft.
-
-**6. Manometer Accuracy**
-The accuracy of the measurement depends on the manometer used.
-* **Consideration:** Select a manometer with a resolution appropriate for the expected pressure (e.g., 0.01 in. w.g. for a paint oven duct).
-
-**7. Obstruction**
-The presence of the measurement tube itself can slightly alter the airflow.
-* **Consideration:** Ensure the tube is fully extended and positioned correctly to minimize its effect.
-
-**8. System Pressure vs. Velocity Pressure**
-The Shortridge tube measures velocity pressure, not static pressure.
-* **Calculation:** Static pressure is a different measurement and is needed for fan performance analysis but not for calculating the air's velocity.
-
-**9. Leakage**
-Duct leakage can significantly impact the accuracy of the CFM calculation.
-* **Consideration:** Ensure all duct connections are sealed.
-
-**10. Repeatability**
-To ensure accuracy, repeat the measurements multiple times at each point and average the readings.
-* **Consideration:** The process should be documented and taken by a trained technician to ensure consistent, reliable data for the AI model.
+    *   Required heat for air (sensible heat): Mass flow * Specific heat of air * Delta_T
+        *   46.3 lbs/min * 60 min/hr * 0.24 BTU/lb-F * (150 F - 75 F) = ~50,000 BTU/hr
+    *   Required heat for evaporation (latent heat): Mass flow of water * Latent heat of vaporization
+        *   75.06 lbs/hr * ~970 BTU/lb = ~72,800 BTU/hr
+    *   Total heat required: 50,000 + 72,800 = ~122,800 BTU/hr (plus system losses).
 `;
 
-export const analyzeProcessData = async (baselineData: ProcessData, historicalData: ProcessData[]): Promise<AIAnalysis> => {
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: `
-                Analyze the provided automotive paint process data.
-                
-                **DATA STRUCTURE NOTE:** Each 'zone' can have an array of 'subSystems'. The main 'supply' and 'exhaust' objects on a zone represent ductwork and do NOT contain fan motor details. Fan motor data is located within sub-systems: 'AirSupplyHouse' contains a full 'airSystem' object. A 'Cooler' sub-system contains an optional 'fanMotor' object. A 'HeaterBox' sub-system now contains two optional fan motor objects: 'combustionFan' and 'circulationFan'. Associate all fan motor data with its parent sub-system and zone.
-                
-                **Engineering Principles & Context:**
-                ${ENGINEERING_PRINCIPLES}
+export const analyzeProcessData = async (baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Promise<AIAnalysis> => {
+  if (!historicalData || historicalData.length === 0) {
+    throw new Error("No historical data available to analyze.");
+  }
+  
+  const model = "gemini-2.5-flash";
 
-                **Baseline (Design) Data:**
-                ${JSON.stringify(baselineData, null, 2)}
+  const problemContext = problemStatement 
+    ? `The user is investigating the following specific problem: "${problemStatement}". Please focus your analysis primarily on data points, faults, and trends that are most relevant to this specific issue. Use this context to determine the most likely root causes.`
+    : `The user has not provided a specific problem statement. Perform a general analysis of the system's health and identify the most critical issues.`;
 
-                **Historical Onsite Readings (Newest is last):**
-                ${JSON.stringify(historicalData, null, 2)}
+  const prompt = `
+    You are an expert AI for process engineering diagnostics, specializing in industrial paint lines for automotive manufacturing.
+    Your task is to analyze process data, identify faults by comparing current readings to a baseline, detect trends over time, and perform a root cause analysis using the provided engineering principles.
 
-                **Your Task:**
-                1.  **Compare the LATEST historical reading to the baseline.** Identify all parameters with a significant deviation (e.g., >5%). List these as 'faults'.
-                2.  **Analyze the ENTIRE set of historical readings.** Identify any developing trends (e.g., steadily increasing temperature, fluctuating airflow).
-                3.  **Synthesize faults and trends.** Based on the engineering principles provided, determine the most likely root causes for the observed issues. A single root cause might explain multiple faults or trends.
-                4.  **Provide actionable recommendations** for each root cause.
-                5.  **Summarize the overall system status** as 'In-Compliance', 'Warning', or 'Critical' based on the severity of deviations. 'In-Compliance' means all deviations are within 5%. 'Warning' means at least one deviation is >5% but none are >10%. 'Critical' means at least one deviation is >10%.
-                6.  **Respond ONLY with the JSON object** adhering to the provided schema. Do not include any other text or markdown formatting.
-            `,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: responseSchema,
-            },
-        });
-        
-        const jsonText = response.text.trim();
-        const result = JSON.parse(jsonText);
-        return result as AIAnalysis;
-    } catch (error) {
-        console.error("Error calling Gemini API:", error);
-        if (error instanceof Error && error.message.includes('JSON')) {
-             throw new Error("AI returned an invalid data format. Please try again.");
-        }
-        throw new Error("An error occurred during AI analysis.");
-    }
+    **Problem Context:**
+    ${problemContext}
+
+    **Instructions:**
+    1.  **Analyze Faults:** Compare the MOST RECENT historical reading to the baseline data. Identify any parameter that deviates by more than 5%.
+    2.  **Analyze Trends:** Examine ALL historical readings to identify any parameters that show a consistent upward, downward, or cyclical trend over time.
+    3.  **Root Cause Analysis:** Based on the identified faults and trends, use the provided Engineering Principles to determine the most likely root causes. Explain your reasoning clearly.
+    4.  **Overall Status:** Summarize the system's health into one of three categories: 'In-Compliance', 'Warning', or 'Critical'.
+    5.  **Format Output:** Return the entire analysis as a single JSON object conforming to the provided schema.
+
+    **Engineering Principles Knowledge Base:**
+    ---
+    ${ENGINEERING_PRINCIPLES}
+    ---
+
+    **Data Provided:**
+    *   **Baseline Design Data:** This is the target specification for the process.
+        \`\`\`json
+        ${JSON.stringify(baselineData, null, 2)}
+        \`\`\`
+    *   **Historical Readings:** A time-series of measurements. The last entry is the most recent.
+        \`\`\`json
+        ${JSON.stringify(historicalData, null, 2)}
+        \`\`\`
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema,
+        },
+    });
+
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as AIAnalysis;
+  } catch (error) {
+    console.error("Gemini API call failed:", error);
+    throw new Error(`Failed to get a valid analysis from the AI. The AI response might be blocked or contain malformed JSON. Raw error: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
+
+export const initializeChatSession = (baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Chat => {
+  const model = 'gemini-2.5-flash';
+
+  const problemContext = problemStatement 
+    ? `The user's primary focus for this investigation is: "${problemStatement}". Always consider this context when answering questions.`
+    : ``;
+
+  const systemInstruction = `
+    You are an expert process engineering diagnostic assistant. You are helpful, polite, and provide detailed, technical answers based *only* on the data provided and fundamental engineering principles.
+    Your knowledge base is the provided baseline data, historical readings, and a set of core engineering principles for paint dehydration. Do not use outside knowledge.
+    When asked about trends, compare data points across the different historical readings.
+    When asked for calculations, perform them step-by-step and show your work.
+    ${problemContext}
+
+    Here is the baseline design data for the system:
+    \`\`\`json
+    ${JSON.stringify(baselineData, null, 2)}
+    \`\`\`
+    Here are the historical readings collected over time (the last one is the most recent):
+    \`\`\`json
+    ${JSON.stringify(historicalData, null, 2)}
+    \`\`\`
+  `;
+
+  return ai.chats.create({
+    model,
+    config: {
+      systemInstruction,
+    },
+  });
+};
+
+export const querySmartAgent = async (chat: Chat, message: string): Promise<string> => {
+    const response = await chat.sendMessage({ message });
+    return response.text;
 };
 
 const changeRequestSchema = {
     type: Type.OBJECT,
     properties: {
-        title: { type: Type.STRING, description: "A concise and descriptive title for the change request." },
-        justification: { type: Type.STRING, description: "A detailed explanation of why this change is necessary, citing specific data points, faults, or trends from the analysis." },
-        recommendedAction: { type: Type.STRING, description: "A step-by-step description of the action to be taken. This should be clear and unambiguous." },
-        expectedResults: { type: Type.STRING, description: "The specific, measurable outcomes expected after implementing the change (e.g., 'Reduce temperature fluctuation in Zone 2 to +/- 2°F')." },
-        riskLevel: { type: Type.STRING, enum: ['Low', 'Medium', 'High'], description: "An assessment of the potential risks associated with this change." },
-        riskDetails: { type: Type.STRING, description: "A brief explanation of the risks and a plan to mitigate them. If risk is Low, explain why." },
-        estimatedCost: { type: Type.STRING, description: "A rough, non-binding cost estimate for parts, labor, and downtime. (e.g., '$500 - $1,000 for new sensor and labor', 'Minimal cost, involves recalibration during scheduled downtime')." },
+        title: { type: Type.STRING, description: "A concise, descriptive title for the change request (e.g., 'Recalibrate Heated Flash Zone Temperature Controller')." },
+        justification: { type: Type.STRING, description: "A detailed explanation of why this change is necessary, referencing specific faults and trends from the analysis (e.g., 'Heated Flash Zone temperature is consistently 15°F above baseline, causing...')." },
+        recommendedAction: { type: Type.STRING, description: "A step-by-step description of the action to be taken (e.g., '1. Lock out and tag out the heater box. 2. Use a calibrated thermocouple to measure the actual temperature. 3. Adjust the controller offset...')." },
+        expectedResults: { type: Type.STRING, description: "The measurable positive outcomes expected after the change is implemented (e.g., 'Temperature deviation will be reduced to less than +/- 2°F from baseline. Reduction in surface blistering by 90%.')." },
+        riskLevel: { type: Type.STRING, description: "The assessed risk level of performing the action. Must be 'Low', 'Medium', or 'High'." },
+        riskDetails: { type: Type.STRING, description: "A brief description of potential risks and a plan to mitigate them (e.g., 'Risk of minor production downtime. Mitigation: Perform during scheduled weekend maintenance.')." },
+        estimatedCost: { type: Type.STRING, description: "A rough estimate of the cost, including labor and materials (e.g., '$500 for 2 hours of technician labor and calibration equipment.')." },
     },
-    required: ['title', 'justification', 'recommendedAction', 'expectedResults', 'riskLevel', 'riskDetails', 'estimatedCost']
+    required: ["title", "justification", "recommendedAction", "expectedResults", "riskLevel", "riskDetails", "estimatedCost"],
 };
 
+export const suggestChangeRequest = async (analysis: AIAnalysis, baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Promise<Omit<ChangeRequest, 'id' | 'status'>> => {
+    const model = 'gemini-2.5-flash';
+    const problemContext = problemStatement 
+        ? `The primary goal is to address the following user-defined problem: "${problemStatement}". Ensure the suggested change request directly addresses this issue.`
+        : `The user has not specified a problem. Base the change request on the most critical fault or trend identified in the analysis.`;
 
-export const suggestChangeRequest = async (analysis: AIAnalysis, baselineData: ProcessData, historicalData: ProcessData[]): Promise<Omit<ChangeRequest, 'id' | 'status'>> => {
+    const prompt = `
+        You are an expert AI assistant for process engineering. Based on the provided analysis of an industrial paint line, generate a formal, detailed, and actionable Change Request document.
+        
+        **Problem Context:**
+        ${problemContext}
+
+        **Instructions:**
+        1.  Review the entire analysis, including faults, trends, and root cause analysis.
+        2.  Identify the single most critical issue or root cause that requires action.
+        3.  Formulate a professional and well-structured change request to address this issue.
+        4.  Be specific and practical in your recommendations. The output should be ready for a technician or manager to review.
+        5.  Return the output as a single JSON object conforming to the provided schema.
+
+        **Analysis Data:**
+        \`\`\`json
+        ${JSON.stringify({ analysis, baselineData, historicalData }, null, 2)}
+        \`\`\`
+    `;
+
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: `
-                Based on the provided process analysis, which includes faults, trends, and root cause recommendations, generate a comprehensive and actionable Change Request. The goal is to address the most critical issue identified in the analysis. The change request should be detailed and professional.
-
-                **Analysis:**
-                ${JSON.stringify(analysis, null, 2)}
-
-                **Baseline Data:**
-                ${JSON.stringify(baselineData, null, 2)}
-
-                **Historical Data:**
-                ${JSON.stringify(historicalData, null, 2)}
-
-                **Your Task:**
-                1.  **Identify the most critical issue** from the analysis's root causes or faults.
-                2.  Formulate a clear **title** for the change request based on this issue.
-                3.  Write a compelling **justification** based on the analysis findings, explaining the negative impact of the current state.
-                4.  Use the **recommended action** from the analysis as a starting point, but elaborate on it to make it a clear, actionable instruction.
-                5.  Infer and describe the specific, measurable **expected results** and benefits of implementing the change.
-                6.  Assess the **risk level** ('Low', 'Medium', 'High') and provide concise **risk details** and a mitigation plan.
-                7.  Provide a rough, non-binding **estimated cost**.
-
-                **Respond ONLY with the JSON object** adhering to the provided schema. Do not include 'id' or 'status' fields. Do not include any other text or markdown formatting.
-            `,
+            model,
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: changeRequestSchema,
             },
         });
-
         const jsonText = response.text.trim();
-        const result = JSON.parse(jsonText);
-        return result as Omit<ChangeRequest, 'id' | 'status'>;
-
+        return JSON.parse(jsonText);
     } catch (error) {
-        console.error("Error calling Gemini API for change request suggestion:", error);
-        if (error instanceof Error && error.message.includes('JSON')) {
-             throw new Error("AI returned an invalid data format for the change request. Please try again.");
-        }
-        throw new Error("An error occurred during AI change request suggestion.");
+        console.error("Gemini API call for suggestion failed:", error);
+        throw new Error(`Failed to get a valid suggestion from the AI. Raw error: ${error instanceof Error ? error.message : String(error)}`);
     }
 };
-
-export const initializeChatSession = (baselineData: ProcessData, historicalData: ProcessData[]): Chat => {
-    const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-            systemInstruction: `You are an expert diagnostic assistant for analyzing an automotive heated flash process. Your knowledge base includes extensive engineering principles for this specific process. You have been provided with the complete baseline (design) data and all historical readings for the system.
-
-            **DATA STRUCTURE NOTE:** Each 'zone' can have an array of 'subSystems'. The main 'supply' and 'exhaust' objects on a zone represent ductwork and do NOT contain fan motor details. Fan motor data is located within sub-systems: 'AirSupplyHouse' contains a full 'airSystem' object. A 'Cooler' sub-system contains an optional 'fanMotor' object. A 'HeaterBox' sub-system now contains two optional fan motor objects: 'combustionFan' and 'circulationFan'. Associate all fan motor data with its parent sub-system and zone.
-
-            **Your Knowledge Base:**
-            ${ENGINEERING_PRINCIPLES}
-
-            **Baseline (Design) Data:**
-            ${JSON.stringify(baselineData, null, 2)}
-    
-            **Historical Onsite Readings (Newest is last):**
-            ${JSON.stringify(historicalData, null, 2)}
-
-            **Your Role:**
-            - Answer user questions about the process data.
-            - Explain potential relationships between different parameters.
-            - Clarify faults, trends, and root cause analyses.
-            - Be concise and directly reference the data you have been given.
-            - If you don't have enough data to answer a question, say so and explain what data you would need.
-            - Do not provide the raw JSON data back to the user unless specifically asked. Instead, interpret it for them.
-            `
-        },
-    });
-    return chat;
-};
-
-export const querySmartAgent = async (chat: Chat, message: string): Promise<string> => {
-    try {
-        const response = await chat.sendMessage({ message });
-        return response.text;
-    } catch (error) {
-        console.error("Error querying Smart Agent:", error);
-        throw new Error("Failed to get a response from the Smart Agent.");
-    }
-}
