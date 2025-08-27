@@ -30,7 +30,7 @@ const SmartAgentPanel = ({ history, onSendMessage, isLoading }: SmartAgentPanelP
   };
 
   return (
-    <div className="bg-panel p-6 rounded-lg shadow-md flex flex-col h-[600px]">
+    <div className="bg-panel p-6 rounded-lg shadow-md flex flex-col h-[450px]">
       <h2 className="text-2xl font-bold text-text-primary mb-4 flex-shrink-0">Diagnostic Assistant</h2>
       
       <div ref={scrollContainerRef} className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4">

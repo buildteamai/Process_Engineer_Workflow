@@ -1,10 +1,10 @@
 
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { ProcessData, AIAnalysis, ChatMessage, AirSystemData, SubSystem, Zone, FanMotorData, DuctworkData, ChangeRequest } from './types';
 import type { Chat } from '@google/genai';
 import { BLANK_PROCESS_DATA } from './constants';
 import { analyzeProcessData, initializeChatSession, querySmartAgent } from './services/geminiService';
+import { initGoogleClient, handleSignIn, handleSignOut, showFolderPicker, showFilePicker, saveFileToDrive, loadFileFromDrive, isGoogleDriveConfigured, isGoogleAuthConfigured } from './services/googleDriveService';
 import Header from './components/Header';
 import SchematicDisplay from './components/SchematicDisplay';
 import DataInputForm from './components/DataInputForm';
@@ -12,28 +12,15 @@ import AnalysisPanel from './components/AnalysisPanel';
 import SmartAgentPanel from './components/SmartAgentPanel';
 import ChangeManagementPanel from './components/ChangeManagementPanel';
 import TrendChartModal from './components/TrendChartModal';
+import SaveToDriveModal from './components/SaveToDriveModal';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const LoginOverlay = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    passwordRef.current?.focus();
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'kb1970') {
-      onLoginSuccess();
-    } else {
-      setError('Invalid password. Please try again.');
-      setPassword('');
-    }
-  };
-
+const LoginOverlay = ({ onLoginSuccess, onGoogleSignIn, isGoogleAuthConfigured }: {
+  onLoginSuccess: () => void;
+  onGoogleSignIn: () => void;
+  isGoogleAuthConfigured: boolean;
+}) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm">
       <div className="bg-panel rounded-lg shadow-xl p-8 w-full max-w-sm m-4 text-center">
@@ -41,25 +28,31 @@ const LoginOverlay = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
         <h1 className="text-2xl font-bold text-heading tracking-tight mb-2">
           Process Engineering Monitor
         </h1>
-        <p className="text-text-secondary mb-6">Please enter the password to access the application.</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            ref={passwordRef}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-2 border-border rounded-md p-3 text-center text-lg tracking-widest focus:ring-interactive focus:border-interactive"
-            placeholder="******"
-            aria-label="Password"
-          />
-          {error && <p className="text-danger text-sm mt-2">{error}</p>}
+        <p className="text-text-secondary mb-8">Sign in to save your work to Google Drive, or continue with local storage only.</p>
+        
+        {isGoogleAuthConfigured ? (
           <button
-            type="submit"
-            className="w-full mt-4 bg-interactive text-white font-bold py-3 px-4 rounded-lg hover:bg-interactive-hover transition duration-300"
+            type="button"
+            onClick={onGoogleSignIn}
+            className="w-full flex justify-center items-center gap-3 bg-interactive text-white font-bold py-3 px-4 rounded-lg hover:bg-interactive-hover transition duration-300"
           >
-            Unlock
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/><polyline points="9 17 14 12 9 7"/><line x1="14" x2="4" y1="12" y2="12"/></svg>
+            Sign in with Google
           </button>
-        </form>
+        ) : (
+          <div className="text-center p-4 bg-slate-100 rounded-md text-sm text-text-secondary">
+              <p className="font-semibold">Google Sign-In is not configured.</p>
+              <p className="mt-1">A Google Client ID must be provided to enable this feature.</p>
+          </div>
+        )}
+        
+        <button
+          type="button"
+          onClick={onLoginSuccess}
+          className="w-full mt-4 text-sm text-text-secondary hover:text-text-primary transition-colors"
+        >
+          Or continue without an account (local save only)
+        </button>
       </div>
     </div>
   );
@@ -88,11 +81,24 @@ export default function App(): React.ReactNode {
   
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
 
+  // Google Drive State
+  const [isGapiReady, setIsGapiReady] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSaveToDriveModalOpen, setIsSaveToDriveModalOpen] = useState(false);
+  const [isSavingToDrive, setIsSavingToDrive] = useState(false);
+
 
   const activeReading = historicalData[activeReadingIndex] || null;
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+  
+  useEffect(() => {
+    initGoogleClient(
+      () => setIsGapiReady(true), // onGapiLoad
+      () => setIsGapiReady(true)  // onGisLoad
+    );
   }, []);
 
   useEffect(() => {
@@ -144,6 +150,22 @@ export default function App(): React.ReactNode {
     }
   };
 
+  const loadDataIntoState = (data: any) => {
+    if (data.baseline && data.historical && Array.isArray(data.historical)) {
+      setBaselineData(data.baseline);
+      setHistoricalData(data.historical);
+      setChangeRequests(data.changeRequests || []);
+      setProblemStatement(data.problemStatement || '');
+      setActiveReadingIndex(data.historical.length > 0 ? data.historical.length - 1 : 0);
+      chatRef.current = null; // Reset chat session
+      setChatHistory([]); // Clear chat history
+      setError(null); // Clear previous errors
+      setJustLoaded(true); // Trigger the useEffect to scroll to top
+    } else {
+      throw new Error("Invalid configuration file format. Missing 'baseline' or 'historical' data array.");
+    }
+  };
+
   const handleLoadConfiguration = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -156,19 +178,7 @@ export default function App(): React.ReactNode {
           throw new Error("File content is not readable text.");
         }
         const data = JSON.parse(text);
-        if (data.baseline && data.historical && Array.isArray(data.historical)) {
-          setBaselineData(data.baseline);
-          setHistoricalData(data.historical);
-          setChangeRequests(data.changeRequests || []);
-          setProblemStatement(data.problemStatement || '');
-          setActiveReadingIndex(data.historical.length > 0 ? data.historical.length - 1 : 0);
-          chatRef.current = null; // Reset chat session
-          setChatHistory([]); // Clear chat history
-          setError(null); // Clear previous errors
-          setJustLoaded(true); // Trigger the useEffect to scroll to top
-        } else {
-          throw new Error("Invalid configuration file format. Missing 'baseline' or 'historical' data array.");
-        }
+        loadDataIntoState(data);
       } catch (err) {
         console.error("Failed to load configuration:", err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred while loading the file.');
@@ -226,6 +236,70 @@ export default function App(): React.ReactNode {
         element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   }, []);
+
+  // --- Google Drive Handlers ---
+  const onSignIn = () => {
+    handleSignIn((tokenResponse) => {
+        if (tokenResponse.access_token) {
+            setIsSignedIn(true);
+        }
+    });
+  };
+
+  const handleGoogleLogin = () => {
+    handleSignIn((tokenResponse) => {
+        if (tokenResponse.access_token) {
+            setIsSignedIn(true);
+            setIsAuthenticated(true);
+        }
+    });
+  };
+
+  const onSignOut = () => {
+      handleSignOut(() => {
+          setIsSignedIn(false);
+      });
+  };
+
+  const handleSaveToDrive = (fileName: string) => {
+    setIsSavingToDrive(true);
+    showFolderPicker(async (folderId) => {
+        try {
+            const dataToSave = JSON.stringify({
+                baseline: baselineData,
+                historical: historicalData,
+                changeRequests: changeRequests,
+                problemStatement: problemStatement,
+            }, null, 2);
+
+            await saveFileToDrive(fileName, folderId, dataToSave);
+            alert('File saved to Google Drive successfully!');
+        } catch (err) {
+            console.error("Failed to save to Drive:", err);
+            setError(err instanceof Error ? err.message : 'An unknown error occurred while saving to Google Drive.');
+        } finally {
+            setIsSavingToDrive(false);
+            setIsSaveToDriveModalOpen(false);
+        }
+    });
+  };
+
+  const handleLoadFromDrive = () => {
+      if (!isGapiReady || !isSignedIn) {
+          alert("Please sign in to Google first.");
+          return;
+      }
+      showFilePicker(async (fileId) => {
+          try {
+              const fileContent = await loadFileFromDrive(fileId);
+              const data = JSON.parse(fileContent);
+              loadDataIntoState(data);
+          } catch (err) {
+              console.error("Failed to load from Drive:", err);
+              setError(err instanceof Error ? err.message : 'An unknown error occurred while loading from Google Drive.');
+          }
+      });
+  };
 
   const handleDownloadTemplate = () => {
     if (!baselineData) return;
@@ -662,7 +736,11 @@ export default function App(): React.ReactNode {
   };
 
   if (!isAuthenticated) {
-    return <LoginOverlay onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <LoginOverlay 
+      onLoginSuccess={() => setIsAuthenticated(true)} 
+      onGoogleSignIn={handleGoogleLogin} 
+      isGoogleAuthConfigured={isGoogleAuthConfigured} 
+    />;
   }
 
   return (
@@ -673,6 +751,12 @@ export default function App(): React.ReactNode {
         onOpenTrendChart={() => setIsTrendChartVisible(true)}
         onDownloadTemplate={handleDownloadTemplate}
         onDownloadProcessFlow={handleDownloadProcessFlow}
+        onSaveToDrive={() => setIsSaveToDriveModalOpen(true)}
+        onLoadFromDrive={handleLoadFromDrive}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        isSignedIn={isGapiReady && isSignedIn}
+        isGoogleDriveConfigured={isGoogleDriveConfigured}
       />
        <input
         type="file"
@@ -738,6 +822,15 @@ export default function App(): React.ReactNode {
           historicalData={historicalData}
           baselineData={baselineData}
           onClose={() => setIsTrendChartVisible(false)}
+        />
+      )}
+      {isSaveToDriveModalOpen && (
+        <SaveToDriveModal
+          isOpen={isSaveToDriveModalOpen}
+          onClose={() => setIsSaveToDriveModalOpen(false)}
+          onSave={handleSaveToDrive}
+          isSaving={isSavingToDrive}
+          defaultFileName={`process-config-${(baselineData.customerInfo?.name?.value || 'customer').replace(/\s+/g, '-').toLowerCase()}`}
         />
       )}
     </div>

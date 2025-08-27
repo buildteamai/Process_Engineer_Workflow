@@ -1,14 +1,17 @@
 
+
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 import type { ProcessData, AIAnalysis, ChangeRequest } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined;
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+let ai: GoogleGenAI | null = null;
+if (API_KEY) {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+} else {
+    console.warn("API_KEY environment variable not set. AI features will be unavailable.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const responseSchema = {
     type: Type.OBJECT,
@@ -236,6 +239,9 @@ The air must be heated to provide the latent heat of vaporization for the water.
 `;
 
 export const analyzeProcessData = async (baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Promise<AIAnalysis> => {
+  if (!ai) {
+    throw new Error("Gemini AI is not configured. Please set the API_KEY environment variable.");
+  }
   if (!historicalData || historicalData.length === 0) {
     throw new Error("No historical data available to analyze.");
   }
@@ -295,6 +301,9 @@ export const analyzeProcessData = async (baselineData: ProcessData, historicalDa
 };
 
 export const initializeChatSession = (baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Chat => {
+  if (!ai) {
+    throw new Error("Gemini AI is not configured. Please set the API_KEY environment variable.");
+  }
   const model = 'gemini-2.5-flash';
 
   const problemContext = problemStatement 
@@ -346,6 +355,9 @@ const changeRequestSchema = {
 };
 
 export const suggestChangeRequest = async (analysis: AIAnalysis, baselineData: ProcessData, historicalData: ProcessData[], problemStatement: string): Promise<Omit<ChangeRequest, 'id' | 'status'>> => {
+    if (!ai) {
+        throw new Error("Gemini AI is not configured. Please set the API_KEY environment variable.");
+    }
     const model = 'gemini-2.5-flash';
     const problemContext = problemStatement 
         ? `The primary goal is to address the following user-defined problem: "${problemStatement}". Ensure the suggested change request directly addresses this issue.`
